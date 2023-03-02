@@ -18,5 +18,8 @@ public class MemberService {
 		Container.memberDao.add(member);
 		
 	}
+	public String getWriterName(int membeId) {
+		return Container.memberDao.getWriterName(membeId);
+	}
 
 }

@@ -1,12 +1,11 @@
 package com.koreaIT.java.BAM.controller;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
 import com.koreaIT.java.BAM.container.Container;
 import com.koreaIT.java.BAM.dto.Article;
-import com.koreaIT.java.BAM.dto.Member;
+import com.koreaIT.java.BAM.service.ArticleService;
 import com.koreaIT.java.BAM.util.Util;
 
 public class ArticleController extends Controller {
@@ -14,10 +13,12 @@ public class ArticleController extends Controller {
 	// private List<Article> articles; // 모든 게시글을 저장하고 있는 변수
 	private Scanner sc;
 	private String cmd;// 사용자가 원하는 명령을 저장하는 함수
+	private ArticleService articleService;// 사용자가 원하는 명령을 저장하는 함수
 
 	public ArticleController(Scanner sc) {
 		// this.articles = Container.articleDao.articles;
 		this.sc = sc;
+		this.articleService = Container.articleService;
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class ArticleController extends Controller {
 	// 게시글 작성 함수
 	private void doWrite() {
 
-		int id = Container.articleDao.getLastId(); // 회원이 가지고 있는 고유번호
+		int id = articleService.getLastId(); // 회원이 가지고 있는 고유번호
 
 		System.out.printf("제목 : ");
 		String title = sc.nextLine(); // 제목의 변수 : title
@@ -76,7 +77,6 @@ public class ArticleController extends Controller {
 
 		String searchKeyword = cmd.substring("article list".length()).trim();
 
-		System.out.println("검색어 : " + searchKeyword);
 
 		List<Article> printArticles = Container.articleService.getPrintArticles(searchKeyword);
 
@@ -86,19 +86,12 @@ public class ArticleController extends Controller {
 		}
 
 		System.out.println("번호	|	제목	|		날짜		|	작성자	|	조회");
-		Collections.reverse(printArticles);
-		for (Article article : printArticles) {
 
-			String writerName = null;
+		for (int i = printArticles.size() - 1; i >= 0; i--) {
 
-			List<Member> members = Container.memberDao.members;
+			Article article = printArticles.get(i);
 
-			for (Member member : members) {
-				if (article.MembeId == member.id) {
-					writerName = member.name;
-					break;
-				}
-			}
+			String writerName = Container.memberService.getWriterName(article.MembeId);
 
 			System.out.printf("%d	|	%s	|	%s	|	%s	|	%d\n", article.id, article.title,
 					article.get_current_date_time, writerName, article.views);
@@ -127,16 +120,7 @@ public class ArticleController extends Controller {
 			return;
 		}
 
-		String writerName = null;
-
-		List<Member> members = Container.memberDao.members;
-
-		for (Member member : members) {
-			if (foundArticle.MembeId == member.id) {
-				writerName = member.name;
-				break;
-			}
-		}
+		String writerName = Container.memberService.getWriterName(foundArticle.MembeId);
 
 		foundArticle.getViewsCnt();
 
@@ -208,8 +192,9 @@ public class ArticleController extends Controller {
 		System.out.printf("수정할 내용 : ");
 		String body = sc.nextLine();
 
-		foundArticle.title = title;
-		foundArticle.body = body;
+		Container.articleService.ArticleModify(foundArticle, title, body);
+//		foundArticle.title = title;
+//		foundArticle.body = body;
 
 		// Container.articleDao.add(foundArticle);
 
@@ -226,12 +211,10 @@ public class ArticleController extends Controller {
 		System.out.println("게시물 테스트 데이터를 생성합니다.");
 
 		// Container.articleService.add(article);
-		Container.articleService
-				.add(new Article(Container.articleService.getLastId(), Util.gettine(), 1, " 제목1", "내용1", 10));
-		Container.articleService
-				.add(new Article(Container.articleService.getLastId(), Util.gettine(), 2, " 제목2", "내용2", 20));
-		Container.articleService
-				.add(new Article(Container.articleService.getLastId(), Util.gettine(), 3, " 제목3", "내용3", 30));
+		articleService.add(new Article(Container.articleService.getLastId(), Util.gettine(), 1, " 제목1", "내용1", 10));
+		articleService.add(new Article(Container.articleService.getLastId(), Util.gettine(), 2, " 제목2", "내용2", 20));
+		articleService.add(new Article(Container.articleService.getLastId(), Util.gettine(), 3, " 제목3", "내용3", 30));
+
 	}
 
 }
